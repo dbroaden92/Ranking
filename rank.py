@@ -1,12 +1,14 @@
 #! /usr/bin/env python
+from __future__ import division
 
 import random
 
-from __future__ import division
+from random import choice
 
 """
-Competition between two given competitors. The competitors' ranks are
-updated based on the results of the competition and returned.
+Allows user to hold a "competition" between two objects for the purpose of
+ranking them. The competitors' ranks are then updated based on the results of
+the competition and returned.
 """
 
 
@@ -76,7 +78,7 @@ def compete(comp1, comp2, winner_id=None, decr_uncertainty=0.002,
   winner, loser = updateRanks(winner, loser, decr_uncertainty=decr_uncertainty,
       min_uncertainty=min_uncertainty)
 
-  if winner["id"] = comp1["id"]:
+  if winner["id"] == comp1["id"]:
     return winner, loser, winner_id
   return loser, winner, winner_id
 
@@ -107,7 +109,7 @@ def isValidCompetitor(comp):
     raise LookupError("Invalid competitor; competitor must include an id")
   if not comp["rank"]:
     raise LookupError("Invalid competitor; competitor must include a rank")
-  else if not comp["rank"] > 0:
+  if not comp["rank"] > 0:
     raise LookupError("Invalid rank; rank must be greater than 0")
 
   return True
@@ -143,7 +145,7 @@ def updateRanks(winner, loser, decr_uncertainty=0.002, min_uncertainty=0.05):
     raise TypeError("Invalid competitor")
 
   # Determine the favored competitor.
-  favored = NULL
+  favored = None
   favored_rank = 0
   unfavored_rank = 0
   if winner["rank"] > loser["rank"]:
@@ -163,7 +165,7 @@ def updateRanks(winner, loser, decr_uncertainty=0.002, min_uncertainty=0.05):
       winner["uncertainty"] = uncertainty - decr_uncertainty
     else:
       winner["uncertainty"] = min_uncertainty
-  if favored = winner["id"]:
+  if favored == winner["id"]:
     winner["rank"] = favored_rank + (uncertainty * unfavored_rank)
   else:
     winner["rank"] = unfavored_rank + (uncertainty * favored_rank)
@@ -176,9 +178,63 @@ def updateRanks(winner, loser, decr_uncertainty=0.002, min_uncertainty=0.05):
       loser["uncertainty"] = uncertainty - decr_uncertainty
     else:
       loser["uncertainty"] = min_uncertainty
-  if favored = loser["id"]:
+  if favored == loser["id"]:
     loser["rank"] = favored_rank - (uncertainty * favored_rank)
   else:
     loser["rank"] = unfavored_rank - (uncertainty * unfavored_rank)
 
   return winner, loser
+
+
+def rankTest():
+  """
+  Tests the comepete() function and checks that the ranks are properly updated
+  for each competitor. This is a manual test, meaning that with the exception
+  of errors being raised, the test won't fail. Results will be output to the
+  terminal for analysis.
+  """
+  # Set default rank and uncertainty.
+  base = 1000
+  rank = 500
+  uncertainty = 0.15
+  # Test Competitors.
+  competitors = list()
+  for i in range(1, 9):
+    comp = {"id": "Player_{0}".format(i), "rank": (base + (rank * i)),
+        "uncertainty": uncertainty}
+    competitors.append(comp)
+
+  print "\n\n*****INITIAL*****\n\n"
+  for comp in competitors:
+    print "ID: {0}, Rank: {1}, Uncertainty: {2}".format(comp["id"],
+        comp["rank"], comp["uncertainty"])
+
+  # Loop and print the results of each iteration.
+  for i in range(0, 10):
+    compA = dict()
+    compB = dict()
+    while True:
+      compA = choice(competitors)
+      compB = choice(competitors)
+      if not compA["id"] == compB["id"]:
+        break
+#    print "\nBEFORE {0}: {5}: {1}, {2}; {6}: {3}, {4}".format(i + 1,
+#        compA["rank"], compA["uncertainty"], compB["rank"],
+#        compB["uncertainty"], compA["id"], compB["id"])
+    compA, compB, winner_id = compete(compA, compB, None)
+#    print "AFTER {3}: Winner: {0}, A: {1}; {4}, B: {2}; {5}".format(winner_id,
+#        compA["rank"], compB["rank"], i + 1, compA["uncertainty"],
+#        compB["uncertainty"])
+
+  print "\n\n*****RESULTS*****\n\n"
+  for comp in competitors:
+    print "ID: {0}, Rank: {1}, Uncertainty: {2}".format(comp["id"],
+        comp["rank"], comp["uncertainty"])
+
+
+def main(args):
+  # Rank Test, uncomment to ignore execution.
+  rankTest()
+
+if __name__ == "__main__":
+  main(None)
